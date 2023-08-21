@@ -105,7 +105,7 @@ const config: ForgeConfig = {
                     if (name) {
                         const newPath = path.join(mainOutDir, name);
                         renameSync(e1.artifacts[i2], newPath);
-                        filesToUpload.push(newPath);
+                        filesToUpload.push(newPath.replace(/\\/g, "/"));
                         makeResults[i1].artifacts[i2] = newPath;
                         downloadBtns += `[![${text}](https://img.shields.io/badge/${encodeURIComponent(
                             text
