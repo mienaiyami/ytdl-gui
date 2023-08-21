@@ -63,7 +63,7 @@ jobs:
           name: ${{github.ref_name}}
           # add generated file here to upload
           files: |
-            ./out/make/zip/win32/ia32/electron-forge-vite-ts-react-tailwindcss-win32-ia32-${{ github.ref_name }}.zip
+            ./out/make/zip/win32/ia32/ytdl-gui-win32-ia32-${{ github.ref_name }}.zip
           body_path: changelog.md 
           generate_release_notes: true
           # discussion_category_name: General
