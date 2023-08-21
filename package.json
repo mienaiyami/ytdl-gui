@@ -1,7 +1,7 @@
 {
   "name": "ytdl-gui",
   "productName": "ytdl-gui",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Add to download youtube audio or video",
   "main": ".vite/build/main.js",
   "scripts": {
@@ -31,8 +31,11 @@
     "@electron-forge/maker-rpm": "^6.2.1",
     "@electron-forge/maker-squirrel": "^6.2.1",
     "@electron-forge/maker-zip": "^6.2.1",
-    "@electron-forge/plugin-auto-unpack-natives": "^6.2.1",
     "@electron-forge/plugin-vite": "^6.2.1",
+    "@fortawesome/fontawesome-svg-core": "^6.4.2",
+    "@fortawesome/free-regular-svg-icons": "^6.4.2",
+    "@fortawesome/free-solid-svg-icons": "^6.4.2",
+    "@fortawesome/react-fontawesome": "^0.2.0",
     "@types/fluent-ffmpeg": "^2.1.21",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
@@ -47,15 +50,7 @@
     "eslint-plugin-react-refresh": "^0.4.3",
     "postcss": "^8.4.28",
     "tailwindcss": "^3.3.3",
-    "typescript": "^5.0.2"
-  },
-  "dependencies": {
-    "@electron/remote": "^2.0.10",
-    "@fortawesome/fontawesome-svg-core": "^6.4.2",
-    "@fortawesome/free-regular-svg-icons": "^6.4.2",
-    "@fortawesome/free-solid-svg-icons": "^6.4.2",
-    "@fortawesome/react-fontawesome": "^0.2.0",
-    "@hookform/resolvers": "^3.2.0",
+    "typescript": "^5.0.2",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.4",
     "@radix-ui/react-dropdown-menu": "^2.0.5",
@@ -68,20 +63,22 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-switch": "^1.0.3",
     "@radix-ui/react-toast": "^1.1.4",
-    "@radix-ui/react-tooltip": "^1.0.6",
+    "@radix-ui/react-tooltip": "^1.0.6"
+  },
+  "dependencies": {
+    "@electron/remote": "^2.0.10",
+    "@hookform/resolvers": "^3.2.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "electron-squirrel-startup": "^1.0.0",
     "ffmpeg-static": "^5.2.0",
     "fluent-ffmpeg": "^2.1.2",
-    "node-fetch": "^3.3.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.45.4",
     "sanitize-filename": "^1.6.3",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.6",
-    "ytdl-core": "^4.11.5",
-    "zod": "^3.22.2"
+    "ytdl-core": "^4.11.5"
   }
 }

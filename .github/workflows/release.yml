@@ -54,7 +54,11 @@ jobs:
       #   with:
       #     name: linux-build-file
       #     path: ./out/full/
-          
+
+      - name: Read files to upload
+        id: readFilesToUpload
+        run: echo "files=$(cat filesToUpload.txt)" >> $GITHUB_OUTPUT
+
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
@@ -62,8 +66,9 @@ jobs:
           tag_name: ${{github.ref}}
           name: ${{github.ref_name}}
           # add generated file here to upload
-          files: |
-            ./out/make/zip/win32/ia32/ytdl-gui-win32-ia32-${{ github.ref_name }}.zip
+          files: ${{ steps.readFilesToUpload.outputs.files }}
+          # files: |
+          #   ./out/make/zip/win32/ia32/ytdl-gui-win32-ia32-${{ github.ref_name }}.zip
           body_path: changelog.md 
           generate_release_notes: true
           # discussion_category_name: General

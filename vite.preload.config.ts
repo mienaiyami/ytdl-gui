@@ -4,10 +4,20 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
     build: {
-        emptyOutDir: false,
-        ssr: true,
+        // emptyOutDir: true,
+        // ssr: true,
         rollupOptions: {
-            input: ["src/electron/preload.ts"],
+            input: "src/electron/preload.ts",
+            external: ["ytdl-core", "fluent-ffmpeg"],
+            //"ffmpeg-static", "fluent-ffmpeg"
         },
+        modulePreload: {
+            polyfill: false,
+        },
+        minify: "esbuild",
+        target: "esnext",
     },
+    // resolve: {
+    //     mainFields: ["module", "jsnext:main", "jsnext"],
+    // },
 });
