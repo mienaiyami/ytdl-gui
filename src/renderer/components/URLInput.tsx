@@ -1,6 +1,7 @@
 import React, { useLayoutEffect, useState } from "react";
 
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type PropType = {
     value: string[];
@@ -49,7 +50,7 @@ const URLInput = (props: PropType) => {
                     }`}
                 >
                     <span>{props.value.length}</span>
-                    <p className={`text-sm max-h-20 overflow-auto`}>{props.value.join(", ")}</p>
+                    <div className={`text-sm max-h-20 overflow-auto`}>{props.value.join(", ")}</div>
                 </div>
             )}
         </div>

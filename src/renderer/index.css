@@ -84,6 +84,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
+    font-weight: 400;
     user-select: none;
   }
 }

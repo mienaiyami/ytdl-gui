@@ -23,6 +23,44 @@ declare global {
         downloadPath: string;
         cookies: string;
     };
+
+    type DownloadingData = {
+        started: Date;
+        building: boolean;
+        title: string;
+        url: string;
+        audio: {
+            total: number;
+            downloaded: number;
+            speed: number;
+            elapsed: string;
+        } | null;
+        video: {
+            total: number;
+            downloaded: number;
+            speed: number;
+            elapsed: string;
+        } | null;
+    };
+    type DownloadedData =
+        | {
+              started: Date;
+              ended: Date;
+              title: string;
+              url: string;
+              audio: {
+                  total: number;
+                  elapsed: string;
+              } | null;
+              video: {
+                  total: number;
+                  elapsed: string;
+              } | null;
+          }
+        | {
+              url: string;
+              error: string;
+          };
     // interface Window {
     //     YTDL: YTDL;
     // }

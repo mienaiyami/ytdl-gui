@@ -23,8 +23,8 @@ if (isPortable) {
 
 const createWindow = (): void => {
     const mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
+        minWidth: 850,
+        minHeight: 700,
         backgroundColor: "#000000",
         show: false,
         // these will make remove default window controls

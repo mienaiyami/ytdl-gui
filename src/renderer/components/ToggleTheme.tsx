@@ -18,7 +18,7 @@ const ToggleTheme = () => {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button className="p-2 ml-auto">
+                <Button className="p-2">
                     <FontAwesomeIcon
                         icon={faSun}
                         className="absolute h-[1.2rem] w-[1.2rem] scale-100 dark:scale-0"
@@ -31,15 +31,9 @@ const ToggleTheme = () => {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setTheme("light")}>
-                    Light
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme("dark")}>
-                    Dark
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme("system")}>
-                    System
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );

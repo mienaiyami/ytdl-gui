@@ -5,15 +5,13 @@ import sanitize from "sanitize-filename";
 // import { fileTypeFromBuffer } from "file-type";
 import { VIDEO_QUALITY } from "../renderer/utils";
 if (ffmpegPath) ffmpeg.setFfmpegPath(ffmpegPath);
-// for no-cors
-// import 2 from "node-2";
 
-type DownloadProgressData = {
-    total: number;
-    downloaded: number;
-    timeElapsed: string;
-    speed: string;
-};
+// type DownloadProgressData = {
+//     total: number;
+//     downloaded: number;
+//     timeElapsed: string;
+//     speed: string;
+// };
 
 export class YTDL {
     #downloadQueue = [] as string[];
@@ -42,7 +40,14 @@ export class YTDL {
     validateURL(url: string) {
         return ytdl.validateURL(url);
     }
-    startDownload(options: DownloadOptions, cb?: () => void) {
+    startDownload(
+        options: DownloadOptions,
+        onProgress: (data: DownloadingData) => void,
+        onItemEnd: (data: DownloadedData) => void,
+        onError: (url: string, error: string) => void,
+        onComplete: () => void,
+        toast: (error: string) => void
+    ) {
         this.#format = options.format;
         this.#audioBitrate = parseInt(options.audioBitrate);
         this.#videoQuality = options.videoQuality;
@@ -51,35 +56,26 @@ export class YTDL {
         this.#downloadPath = options.downloadPath;
         this.#cookies = options.cookies;
 
-        if (this.#downloadQueue.length > 0) {
-            const url = this.#downloadQueue.shift();
-            if (url) {
-                if (this.#format === "mp3")
-                    this.#getAudio(
-                        url,
-                        (data) => {
-                            console.log(data);
-                        },
-                        (err) => console.error(err),
-                        (time) => console.log(time)
-                    );
-                if (this.#format === "mp4")
-                    this.#getVideo(
-                        url,
-                        (data) => {
-                            console.log(data);
-                        },
-                        (err) => console.error(err),
-                        (time) => console.log(time)
-                    );
-            }
-        } else cb && cb();
+        const next = () => {
+            if (this.#downloadQueue.length > 0) {
+                const url = this.#downloadQueue.shift();
+                if (url) {
+                    if (this.#format === "mp3")
+                        this.#getAudio(url, onProgress, onItemEnd, (err) => onError(url, err), next, toast);
+                    if (this.#format === "mp4")
+                        this.#getVideo(url, onProgress, onItemEnd, (err) => onError(url, err), next, toast);
+                }
+            } else onComplete();
+        };
+        next();
     }
     async #getAudio(
         url: string,
-        onProgress: (data: DownloadProgressData) => void,
-        onError: (err: any) => void,
-        onEnd: (time: Date) => void
+        onProgress: (data: DownloadingData) => void,
+        onEnd: (data: DownloadedData) => void,
+        onError: (error: string) => void,
+        next: () => void,
+        toast: (error: string) => void
     ) {
         const info = await ytdl.getInfo(url, {
             requestOptions: {
@@ -93,7 +89,6 @@ export class YTDL {
         const best =
             [...audios].reverse().find((e) => e.audioBitrate && e.audioBitrate >= this.#audioBitrate) || audios[0];
         const title = sanitize(info.videoDetails.title);
-        console.log({ best, title });
         const stream = ytdl.downloadFromInfo(info, {
             format: best,
             requestOptions: {
@@ -110,16 +105,34 @@ export class YTDL {
         );
         let prevSize = 0;
         let prevTime = started;
-
+        const progress: DownloadingData = {
+            video: null,
+            audio: {
+                downloaded: 0,
+                total: 0,
+                speed: 0,
+                elapsed: "",
+            },
+            building: false,
+            started,
+            title,
+            url,
+        };
         stream.on("progress", (e, downloaded, total) => {
             const timeNow = new Date();
-            if (timeNow.getTime() - prevTime.getTime() < 100) return;
-            onProgress({
+            if (timeNow.getTime() - prevTime.getTime() < 200) return;
+            const speed = parseFloat(
+                this.byteToMB((downloaded - prevSize) / ((timeNow.getTime() - prevTime.getTime()) / 1000))
+            );
+            const elapsed = new Date(timeNow.getTime() - started.getTime()).toISOString().substring(11, 19);
+
+            progress.audio = {
                 downloaded,
+                elapsed,
+                speed,
                 total,
-                timeElapsed: new Date(timeNow.getTime() - started.getTime()).toISOString().substring(11, 19),
-                speed: this.byteToMB((downloaded - prevSize) / ((timeNow.getTime() - prevTime.getTime()) / 1000)),
-            });
+            };
+            onProgress(progress);
             prevSize = downloaded;
             prevTime = timeNow;
         });
@@ -133,15 +146,21 @@ export class YTDL {
         let thumbPath = window.electron.path.join(this.#downloadPath, title);
         if (this.#embedAlbumArt) {
             if (this.#embedAlbumArt) {
-                const raw_thumb = await fetch(info.videoDetails.thumbnails.at(-1)!.url);
-                if (raw_thumb.ok) {
-                    const arraybuffer_thumb = await raw_thumb.arrayBuffer();
-                    const uint8array = new Uint8Array(arraybuffer_thumb);
-                    const buffer_thumb = Buffer.from(arraybuffer_thumb);
-                    // const type = await fileTypeFromBuffer(buffer_thumb);
-                    // if (type) thumbPath += type.ext;
-                    window.electron.fs.writeFileSync(thumbPath, buffer_thumb);
-                } else console.error("Thumbnail did not download.");
+                try {
+                    const raw_thumb = await fetch(info.videoDetails.thumbnails.at(-1)!.url);
+                    if (raw_thumb.ok) {
+                        const arraybuffer_thumb = await raw_thumb.arrayBuffer();
+                        // const uint8array = new Uint8Array(arraybuffer_thumb);
+                        const buffer_thumb = Buffer.from(arraybuffer_thumb);
+                        // const type = await fileTypeFromBuffer(buffer_thumb);
+                        // if (type) thumbPath += type.ext;
+                        window.electron.fs.writeFileSync(thumbPath, buffer_thumb);
+                    }
+                } catch (reason) {
+                    // console.error("Thumbnail did not download.");
+                    // onError("Thu")
+                    toast("Thumbnail did not download.");
+                }
             }
             if (window.electron.fs.existsSync(thumbPath))
                 ffmpegCommand.input(thumbPath).outputOption("-map", "0:0").outputOption("-map", "1:0");
@@ -149,21 +168,38 @@ export class YTDL {
         ffmpegCommand
             .save(filename)
             .on("error", (err) => {
-                onError(err);
+                if (typeof err === "string") onError(err);
+                else onError(err?.toString());
                 console.error(err);
                 window.electron.fs.existsSync(thumbPath) && window.electron.fs.rmSync(thumbPath);
+                next();
             })
             .on("end", () => {
-                onEnd(new Date());
+                const timeNow = new Date();
                 window.electron.fs.existsSync(thumbPath) && window.electron.fs.rmSync(thumbPath);
+                if (progress.audio)
+                    onEnd({
+                        audio: {
+                            elapsed: progress.audio.elapsed,
+                            total: progress.audio.total,
+                        },
+                        ended: timeNow,
+                        started: progress.started,
+                        title,
+                        url,
+                        video: null,
+                    });
+                next();
             });
     }
 
     async #getVideo(
         url: string,
-        onProgress: (data: DownloadProgressData) => void,
-        onError: (err: any) => void,
-        onEnd: (time: Date) => void
+        onProgress: (data: DownloadingData) => void,
+        onEnd: (data: DownloadedData) => void,
+        onError: (error: string) => void,
+        next: () => void,
+        toast: (error: string) => void
     ) {
         const info = await ytdl.getInfo(url, {
             requestOptions: {
@@ -177,25 +213,18 @@ export class YTDL {
             (format) => format.qualityLabel && format.container === "mp4" && !format.hasAudio
         );
         if (videos.length === 0) return console.error("No video found.");
-        let quality = 4;
+        let quality = VIDEO_QUALITY.findIndex((e) => e === this.#videoQuality);
         let bestVideo: ytdl.videoFormat | undefined;
         while (true) {
-            bestVideo = videos.find((e) => e.qualityLabel === this.#videoQuality);
+            bestVideo = videos.find((e) => e.qualityLabel === VIDEO_QUALITY[quality]);
             if (bestVideo) break;
             quality--;
             if (quality < 0) break;
-            // console.warn(
-            //     chalk.yellowBright(
-            //         `${qualityOrder[quality + 1]} not found, trying ${
-            //             qualityOrder[quality]
-            //         }`
-            //     )
-            // );
+            toast(`${VIDEO_QUALITY[quality + 1]} not found, trying for ${VIDEO_QUALITY[quality]}...`);
         }
         if (bestVideo === undefined) {
-            // console.error(chalk.redBright("Video not found."));
-            window.electron.dialog.showErrorBox("Video not found", "Video not found at any quality.");
-            // this.startDownload();
+            onError("Video not found at any quality.");
+            next();
             return;
         }
         const videoStream = ytdl.downloadFromInfo(info, {
@@ -221,22 +250,16 @@ export class YTDL {
         });
 
         const title = sanitize(info.videoDetails.title);
-        // console.log(chalk.greenBright("Title:"), title);
         const started = new Date();
-        // console.log(
-        //     chalk.greenBright("Started:"),
-        //     started.toLocaleTimeString()
-        // );
-        // const spinner = createSpinner("Starting Download...").start();
         const filename = window.electron.path.join(
             this.#downloadPath,
-            `${title}${this.#suffixQuality ? `_${this.#videoQuality}` : ""}.mp4`
+            `${title}${this.#suffixQuality ? `_${VIDEO_QUALITY[quality]}` : ""}.mp4`
         );
 
         const tempAudio = window.electron.path.join(this.#downloadPath, "temp.mp3");
         const tempVideo = window.electron.path.join(this.#downloadPath, "temp.mp4");
 
-        const progress = {
+        const progress_fake = {
             video: 0,
             audio: 0,
             videoTotal: 0,
@@ -248,51 +271,68 @@ export class YTDL {
             // so downloadSuccess dont get called twice
             finished: 0,
         };
+
+        const progress: DownloadingData = {
+            video: {
+                downloaded: 0,
+                total: 0,
+                speed: 0,
+                elapsed: "~",
+            },
+            audio: {
+                downloaded: 0,
+                total: 0,
+                speed: 0,
+                elapsed: "~",
+            },
+            building: false,
+            started,
+            title,
+            url,
+        };
         let prevTime = started;
         const update = () => {
             const timeNow = new Date();
             if (timeNow.getTime() - prevTime.getTime() < 200) return;
-            // onProgress({
-            //     downloaded
-            // })
-            console.log(
-                `Audio: [${this.byteToMB(progress.audio)} / ${this.byteToMB(
-                    progress.audioTotal
-                )} MB] @ ${this.byteToMB(
-                    (progress.audio - progress.audioPrevSize) / ((timeNow.getTime() - prevTime.getTime()) / 1000)
-                )}MBps [${new Date(progress.audioPreTime.getTime() - started.getTime())
+            progress.audio = {
+                downloaded: progress_fake.audio,
+                elapsed: new Date(progress_fake.audioPreTime.getTime() - started.getTime())
                     .toISOString()
-                    .substring(11, 19)}]\n` +
-                    `  Video: [${this.byteToMB(progress.video)} / ${this.byteToMB(
-                        progress.videoTotal
-                    )} MB] @ ${this.byteToMB(
-                        (progress.video - progress.videoPrevSize) /
+                    .substring(11, 19),
+                speed: parseFloat(
+                    this.byteToMB(
+                        (progress_fake.audio - progress_fake.audioPrevSize) /
                             ((timeNow.getTime() - prevTime.getTime()) / 1000)
-                    )}MBps [${new Date(progress.videoPreTime.getTime() - started.getTime())
-                        .toISOString()
-                        .substring(11, 19)}]`
-            );
-            progress.audioPrevSize = progress.audio;
-            progress.videoPrevSize = progress.video;
-            if (progress.audio !== progress.audioTotal) progress.audioPreTime = timeNow;
-            if (progress.video !== progress.videoTotal) progress.videoPreTime = timeNow;
+                    )
+                ),
+                total: progress_fake.audioTotal,
+            };
+            progress.video = {
+                downloaded: progress_fake.video,
+                elapsed: new Date(progress_fake.videoPreTime.getTime() - started.getTime())
+                    .toISOString()
+                    .substring(11, 19),
+                speed: parseFloat(
+                    this.byteToMB(
+                        (progress_fake.video - progress_fake.videoPrevSize) /
+                            ((timeNow.getTime() - prevTime.getTime()) / 1000)
+                    )
+                ),
+                total: progress_fake.videoTotal,
+            };
+            onProgress(progress);
+            progress_fake.audioPrevSize = progress_fake.audio;
+            progress_fake.videoPrevSize = progress_fake.video;
+            if (progress_fake.audio !== progress_fake.audioTotal) progress_fake.audioPreTime = timeNow;
+            if (progress_fake.video !== progress_fake.videoTotal) progress_fake.videoPreTime = timeNow;
             prevTime = timeNow;
         };
 
         const downloadSuccess = () => {
-            progress.finished++;
-            if (progress.finished < 2) return;
-            console.log("downloaded both");
-            // spinner.success();
-            // console.log(
-            //     chalk.greenBright("Downloaded:"),
-            //     new Date().toLocaleTimeString()
-            // );
-            // setTimeout(() => {
-            // const buildSpinner = createSpinner().start({
-            //     text: "Building...",
-            // });
-            console.log("building");
+            progress_fake.finished++;
+            if (progress_fake.finished < 2) return;
+            progress.building = true;
+            onProgress(progress);
             ffmpeg()
                 .input(tempVideo)
                 .input(tempAudio)
@@ -302,56 +342,53 @@ export class YTDL {
                 // .addOption(["-map", "1:a:0"])
                 .output(filename)
                 .on("error", (err) => {
-                    onError(err);
-                    // buildSpinner.error({ text: err.message });
-                    // console.log(err);
-                    // this.startDownload();
+                    if (typeof err === "string") onError(err);
+                    else onError(err?.toString());
+                    console.error(err);
+                    next();
                 })
                 .on("end", () => {
                     if (window.electron.fs.existsSync(tempAudio)) window.electron.fs.rmSync(tempAudio);
                     if (window.electron.fs.existsSync(tempVideo)) window.electron.fs.rmSync(tempVideo);
-                    onEnd(new Date());
-                    // buildSpinner.success();
-                    // console.log(
-                    //     chalk.greenBright("Built:"),
-                    //     new Date().toLocaleTimeString()
-                    // );
-                    // this.startDownload();
+                    // onEnd(new Date());
+                    onEnd({
+                        ended: new Date(),
+                        url,
+                        title,
+                        started,
+                        audio: {
+                            elapsed: progress.audio?.elapsed || "~",
+                            total: progress.audio?.total || 0,
+                        },
+                        video: {
+                            elapsed: progress.video?.elapsed || "~",
+                            total: progress.video?.total || 0,
+                        },
+                    });
+                    next();
                 })
                 .run();
             // }, 500);
         };
 
         audioStream.on("progress", (e, downloaded, total) => {
-            progress.audio = downloaded;
-            progress.audioTotal = total;
+            progress_fake.audio = downloaded;
+            progress_fake.audioTotal = total;
             update();
-            // spinner.update({
-            //     text: `${(downloaded)} / ${(
-            //         total
-            //     )}MB`,
-            // });
         });
         videoStream.on("progress", (e, downloaded, total) => {
-            progress.video = downloaded;
-            progress.videoTotal = total;
+            progress_fake.video = downloaded;
+            progress_fake.videoTotal = total;
             update();
-            // spinner.update({
-            //     text: `${(downloaded)} / ${(
-            //         total
-            //     )}MB`,
-            // });
         });
 
         const ffmpegCommand_Audio = ffmpeg(audioStream)
             .audioBitrate(this.#audioBitrate)
             .save(tempAudio)
             .on("error", (err) => {
-                onError(err);
-                // spinner.error({ text: err.message });
-                // console.log(err);
-                // this.startDownload();
-                process.exit(1);
+                if (typeof err === "string") onError(err);
+                else onError(err?.toString());
+                next();
             })
             .on("end", () => {
                 downloadSuccess();
@@ -360,11 +397,9 @@ export class YTDL {
         const ffmpegCommand_Video = ffmpeg(videoStream)
             .save(tempVideo)
             .on("error", (err) => {
-                onError(err);
-                // spinner.error({ text: err.message });
-                // console.log(err);
-                // this.startDownload();
-                process.exit(1);
+                if (typeof err === "string") onError(err);
+                else onError(err?.toString());
+                next();
             })
             .on("end", () => {
                 downloadSuccess();

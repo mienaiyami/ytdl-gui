@@ -23,12 +23,12 @@ import { Input } from "@/components/ui/input";
 const DLOptionInputs = ({ download }: { download: (options: DownloadOptions) => void }) => {
     const form = useForm({
         defaultValues: {
-            format: "mp3",
-            audioBitrate: "256kbps",
-            videoQuality: "720p",
-            suffixQuality: true,
-            embedAlbumArt: true,
-            downloadPath: localStorage.getItem("ytdl-download-path") || SYS_DL_PATH,
+            format: localStorage.getItem("ytdl-format") || "mp3",
+            audioBitrate: localStorage.getItem("ytdl-audioBitrate") || "256kbps",
+            videoQuality: localStorage.getItem("ytdl-videoQuality") || "720p",
+            suffixQuality: JSON.parse(localStorage.getItem("ytdl-suffixQuality") || "true") as boolean,
+            embedAlbumArt: JSON.parse(localStorage.getItem("ytdl-embedAlbumArt") || "true") as boolean,
+            downloadPath: localStorage.getItem("ytdl-downloadPath") || SYS_DL_PATH,
             cookies: localStorage.getItem("ytdl-cookies") || "",
         } as DownloadOptions,
     });
@@ -94,30 +94,32 @@ const DLOptionInputs = ({ download }: { download: (options: DownloadOptions) => 
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="videoQuality"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row space-x-4 items-center space-y-0">
-                            <FormLabel className="text-xl min-w-[130px]">Video Quality</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                    <SelectTrigger className="w-fit min-w-[110px]">
-                                        <SelectValue placeholder="Select video quality" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {VIDEO_QUALITY.map((e) => (
-                                        <SelectItem value={e} key={e}>
-                                            {e}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                {form.getValues("format") === "mp4" && (
+                    <FormField
+                        control={form.control}
+                        name="videoQuality"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row space-x-4 items-center space-y-0">
+                                <FormLabel className="text-xl min-w-[130px]">Video Quality</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger className="w-fit min-w-[110px]">
+                                            <SelectValue placeholder="Select video quality" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {VIDEO_QUALITY.map((e) => (
+                                            <SelectItem value={e} key={e}>
+                                                {e}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
                 <div className="flex flex-row  space-x-4">
                     <FormField
                         control={form.control}
@@ -169,6 +171,7 @@ const DLOptionInputs = ({ download }: { download: (options: DownloadOptions) => 
                                 <FormControl>
                                     <Button
                                         className="px-6"
+                                        variant={"outline"}
                                         onClick={(e) => {
                                             e.preventDefault();
                                             window.electron.dialog
