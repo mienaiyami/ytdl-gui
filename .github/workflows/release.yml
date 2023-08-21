@@ -73,7 +73,7 @@ jobs:
           # doesnt work for some reason
           # files: "${{ steps.readFilesToUpload.outputs.files }}"
           files: |
-            ./out/all/ytdl-gui-${{ github.ref_name }}.zip
+            ./out/all/ytdl-gui-${{ github.ref_name }}-Portable-x32.zip
           body_path: changelog-temp.md 
           generate_release_notes: true
           # discussion_category_name: General
