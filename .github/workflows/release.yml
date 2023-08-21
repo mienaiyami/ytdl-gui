@@ -4,11 +4,11 @@ permissions:
   contents: write
   discussions: write
 
-# on: workflow_dispatch
-on: 
-  push:
-    tags:
-      - "v*.*.*"
+on: workflow_dispatch
+# on: 
+#   push:
+#     tags:
+#       - "v*.*.*"
 
 jobs:
 
@@ -57,7 +57,7 @@ jobs:
 
       - name: Read files to upload
         id: readFilesToUpload
-        run: echo "files=$(cat filesToUpload.txt)" >> $GITHUB_OUTPUT
+        run: echo "files=$(cat filesToUpload.txt)" >> $GITHUB_OUTPUT; echo ${{ steps.readFilesToUpload.outputs.files }}
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -69,7 +69,7 @@ jobs:
           files: ${{ steps.readFilesToUpload.outputs.files }}
           # files: |
           #   ./out/make/zip/win32/ia32/ytdl-gui-win32-ia32-${{ github.ref_name }}.zip
-          body_path: changelog.md 
+          body_path: changelog-temp.md 
           generate_release_notes: true
           # discussion_category_name: General
 
