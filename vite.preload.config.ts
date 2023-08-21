@@ -8,7 +8,7 @@ export default defineConfig({
         // ssr: true,
         rollupOptions: {
             input: "src/electron/preload.ts",
-            external: ["ytdl-core", "fluent-ffmpeg"],
+            external: ["ytdl-core", "fluent-ffmpeg", "ffmpeg-static"],
             //"ffmpeg-static", "fluent-ffmpeg"
         },
         modulePreload: {

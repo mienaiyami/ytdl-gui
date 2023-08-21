@@ -84,7 +84,7 @@ const config: ForgeConfig = {
                         icon: "debian&logoColor=red",
                     },
                 };
-                const mainOutDir = "./out/all";
+                const mainOutDir = path.resolve("./out/all");
                 if (!existsSync(mainOutDir)) mkdirSync(mainOutDir);
                 makeResults.forEach((e1, i1) => {
                     //for reference
