@@ -36,6 +36,8 @@ jobs:
   build:
     # needs: buildDeb
     runs-on: windows-latest
+    outputs:
+      files: ${{ steps.readFilesToUpload.outputs.files }}
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js
@@ -57,7 +59,7 @@ jobs:
 
       - name: Read files to upload
         id: readFilesToUpload
-        run: echo "files=$(cat filesToUpload.txt)" >> $GITHUB_OUTPUT; echo ${{ steps.readFilesToUpload.outputs.files }}
+        run: echo "files=$(cat filesToUpload.txt)" >> "$GITHUB_OUTPUT"; echo "${{ steps.readFilesToUpload.outputs.files }}"
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -66,7 +68,7 @@ jobs:
           tag_name: ${{github.ref}}
           name: ${{github.ref_name}}
           # add generated file here to upload
-          files: ${{ steps.readFilesToUpload.outputs.files }}
+          files: "${{ steps.readFilesToUpload.outputs.files }}"
           # files: |
           #   ./out/make/zip/win32/ia32/ytdl-gui-win32-ia32-${{ github.ref_name }}.zip
           body_path: changelog-temp.md 
