@@ -64,13 +64,11 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
-        env:
-          FILES: ${{ steps.readFilesToUpload.outputs.files }}
         with:
           tag_name: ${{github.ref}}
           name: ${{github.ref_name}}
           # add generated file here to upload
-          files: "$FILES"
+          files: "${{ steps.readFilesToUpload.outputs.files }}"
           # files: |
           #   ./out/make/zip/win32/ia32/ytdl-gui-win32-ia32-${{ github.ref_name }}.zip
           body_path: changelog-temp.md 
