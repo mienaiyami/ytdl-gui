@@ -36,8 +36,6 @@ jobs:
   build:
     # needs: buildDeb
     runs-on: windows-latest
-    outputs:
-      files: ${{ steps.readFilesToUpload.outputs.files }}
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js
