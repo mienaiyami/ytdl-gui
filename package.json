@@ -1,8 +1,8 @@
 {
   "name": "ytdl-gui",
   "productName": "ytdl-gui",
-  "version": "0.0.9",
-  "description": "Add to download youtube audio or video",
+  "version": "0.0.10",
+  "description": "App to download youtube audio/video without a server",
   "main": ".vite/build/main.js",
   "scripts": {
     "preci": "rm -rf ./node_modules",
