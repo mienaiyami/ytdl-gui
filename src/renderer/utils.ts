@@ -22,6 +22,7 @@ declare global {
         suffixQuality: boolean;
         downloadPath: string;
         cookies: string;
+        addMetaData: boolean;
     };
 
     type DownloadingData = {

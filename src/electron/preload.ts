@@ -1,7 +1,7 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
-import { app, dialog, shell } from "@electron/remote";
+import { app, dialog, shell, clipboard } from "@electron/remote";
 import { contextBridge, ipcRenderer } from "electron";
 import fs from "fs";
 import path from "path";
@@ -13,6 +13,7 @@ const electron = {
     app,
     dialog,
     shell,
+    clipboard,
     async invoke(event: string, ...params: any) {
         return await ipcRenderer.invoke(event, ...params);
     },

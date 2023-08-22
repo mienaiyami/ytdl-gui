@@ -22,6 +22,7 @@ export class YTDL {
     #suffixQuality = true;
     #downloadPath = "";
     #cookies = "";
+    #addMetaData = true;
     byteToMB(size: number): string {
         return (size / 1024 / 1024).toFixed(2);
     }
@@ -55,6 +56,7 @@ export class YTDL {
         this.#suffixQuality = options.suffixQuality;
         this.#downloadPath = options.downloadPath;
         this.#cookies = options.cookies;
+        this.#addMetaData = options.addMetaData;
 
         const next = () => {
             if (this.#downloadQueue.length > 0) {
@@ -97,7 +99,6 @@ export class YTDL {
                 },
             },
         });
-
         const started = new Date();
         const filename = window.electron.path.join(
             this.#downloadPath,
@@ -137,12 +138,13 @@ export class YTDL {
             prevTime = timeNow;
         });
 
-        const ffmpegCommand = ffmpeg(stream)
-            .audioBitrate(this.#audioBitrate)
-            .outputOption("-id3v2_version", "3")
-            //replace(/'/g, "\\'")
-            .outputOption("-metadata", `title=${info.videoDetails.title}`)
-            .outputOption("-metadata", `artist=${info.videoDetails.author.name}`);
+        const ffmpegCommand = ffmpeg(stream).audioBitrate(this.#audioBitrate).outputOption("-id3v2_version", "3");
+        //replace(/'/g, "\\'")
+        if (this.#addMetaData) {
+            ffmpegCommand
+                .outputOption("-metadata", `title=${info.videoDetails.title}`)
+                .outputOption("-metadata", `artist=${info.videoDetails.author.name}`);
+        }
         let thumbPath = window.electron.path.join(this.#downloadPath, title);
         if (this.#embedAlbumArt) {
             if (this.#embedAlbumArt) {

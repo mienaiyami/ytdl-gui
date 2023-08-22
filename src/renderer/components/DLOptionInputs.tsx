@@ -30,6 +30,7 @@ const DLOptionInputs = ({ download }: { download: (options: DownloadOptions) => 
             embedAlbumArt: JSON.parse(localStorage.getItem("ytdl-embedAlbumArt") || "true") as boolean,
             downloadPath: localStorage.getItem("ytdl-downloadPath") || SYS_DL_PATH,
             cookies: localStorage.getItem("ytdl-cookies") || "",
+            addMetaData: JSON.parse(localStorage.getItem("ytdl-addMetaData") || "true") as boolean,
         } as DownloadOptions,
     });
 
@@ -146,6 +147,27 @@ const DLOptionInputs = ({ download }: { download: (options: DownloadOptions) => 
                                             <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                         </FormControl>
                                         <FormLabel className="min-w-[130px]">Embed Album Art</FormLabel>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </>
+                    )}
+                    {form.getValues("format") === "mp3" && (
+                        <>
+                            <Separator orientation="vertical" className="h-4" />
+                            <FormField
+                                control={form.control}
+                                name="addMetaData"
+                                render={({ field }) => (
+                                    <FormItem
+                                        className="flex flex-row space-x-2 items-center space-y-0"
+                                        title="Title and Artist name"
+                                    >
+                                        <FormControl>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
+                                        <FormLabel className="min-w-[130px]">Add Metadata</FormLabel>
                                         <FormMessage />
                                     </FormItem>
                                 )}

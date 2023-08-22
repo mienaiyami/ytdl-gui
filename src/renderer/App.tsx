@@ -133,6 +133,7 @@ function App() {
             localStorage.setItem("ytdl-videoQuality", options.videoQuality);
             localStorage.setItem("ytdl-suffixQuality", JSON.stringify(options.suffixQuality));
             localStorage.setItem("ytdl-embedAlbumArt", JSON.stringify(options.embedAlbumArt));
+            localStorage.setItem("ytdl-addMetaData", JSON.stringify(options.addMetaData));
         } else {
             localStorage.removeItem("ytdl-format");
             localStorage.removeItem("ytdl-audioBitrate");
@@ -140,6 +141,7 @@ function App() {
             localStorage.removeItem("ytdl-videoQuality");
             localStorage.removeItem("ytdl-suffixQuality");
             localStorage.removeItem("ytdl-embedAlbumArt");
+            localStorage.removeItem("ytdl-addMetaData");
         }
         if (urls.length > 0) {
             setDownloadModalOpen(true);
@@ -224,8 +226,9 @@ function App() {
                                                 value={cookies}
                                                 ref={cookiesRef}
                                                 onPaste={(e) => {
-                                                    console.log(e.clipboardData.getData("text/plain"));
-                                                    setCookies(e.clipboardData.getData("text/plain"));
+                                                    const c = e.clipboardData.getData("text/plain");
+                                                    setCookies(c);
+                                                    localStorage.setItem("ytdl-cookies", c);
                                                 }}
                                             />
                                             {!cookies && (
@@ -234,13 +237,14 @@ function App() {
                                                     onClick={(e) => {
                                                         const a = cookiesRef.current;
                                                         if (a) {
-                                                            setCookies(a.value);
-                                                            localStorage.setItem("ytdl-cookies", a.value);
+                                                            const c = window.electron.clipboard.readText();
+                                                            setCookies(c);
+                                                            localStorage.setItem("ytdl-cookies", c);
                                                         }
                                                     }}
                                                     variant={"outline"}
                                                 >
-                                                    Save
+                                                    Paste
                                                 </Button>
                                             )}
                                             {cookies && (
@@ -269,6 +273,14 @@ function App() {
                                             <Button asChild className="w-fit" variant={"secondary"}>
                                                 <a href="https://github.com/mienaiyami/ytdl-gui" target="_blank">
                                                     Home Page
+                                                </a>
+                                            </Button>
+                                            <Button asChild className="w-fit" variant={"secondary"}>
+                                                <a
+                                                    href="https://github.com/mienaiyami/ytdl-gui/releases"
+                                                    target="_blank"
+                                                >
+                                                    Latest
                                                 </a>
                                             </Button>
                                         </div>
