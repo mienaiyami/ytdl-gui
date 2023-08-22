@@ -85,7 +85,7 @@ function App() {
                     <span className="flex flex-row space-x-2">
                         <span className="text-muted-foreground">Audio:</span>
                         <span
-                            className={`grid grid-cols-3 w-full content-center justify-center ${
+                            className={`grid grid-cols-[55%_25%_20%] w-full content-center justify-items-center ${
                                 e.audio?.downloaded === e.audio?.total ? "text-green-800 dark:text-green-400" : ""
                             }`}
                         >
@@ -100,7 +100,7 @@ function App() {
                         <span className="flex flex-row space-x-2">
                             <span className="text-muted-foreground">Video:</span>
                             <span
-                                className={`grid grid-cols-3 w-full content-center justify-center ${
+                                className={`grid grid-cols-[55%_25%_20%] w-full content-center justify-items-center ${
                                     e.video.downloaded === e.video.total
                                         ? "text-green-800 dark:text-green-400"
                                         : ""
