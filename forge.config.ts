@@ -112,7 +112,9 @@ const config: ForgeConfig = {
                         ).replace(/-/g, "--")}-${encodeURIComponent(name).replace(
                             /-/g,
                             "--"
-                        )}-brightgreen?logo=${icon})](${pkgJSON.author.url}/releases/download/${name})\n`;
+                        )}-brightgreen?logo=${icon})](${
+                            pkgJSON.author.url
+                        }/releases/download/${appVersion}/${name})\n`;
                     }
                 });
 

@@ -58,11 +58,14 @@ jobs:
       #     path: ./out/full/
 
       - name: Read files to upload
-        id: readFilesToUpload
-        run: echo "files=$(cat filesToUpload.txt)" >> "$GITHUB_OUTPUT"; echo "files=$(cat filesToUpload.txt)"
+        id: read_files
+        shell: pwsh
+        run: |
+          $content = Get-Content filesToUpload.txt -Raw
+          echo "::set-output name=files::$content"
 
       - name: test
-        run: echo "${{ steps.readFilesToUpload.outputs.files }}"
+        run: echo "${{ steps.read_files.outputs.files }}"
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -70,10 +73,9 @@ jobs:
         with:
           tag_name: ${{github.ref}}
           name: ${{github.ref_name}}
-          # doesnt work for some reason
-          # files: "${{ steps.readFilesToUpload.outputs.files }}"
-          files: |
-            ./out/all/ytdl-gui-${{ github.ref_name }}-Portable-x32.zip
+          files: ${{ steps.read_files.outputs.files }}
+          # files: |
+          #   ./out/all/ytdl-gui-${{ github.ref_name }}-Portable-x32.zip
           body_path: changelog-temp.md 
           generate_release_notes: true
           # discussion_category_name: General
